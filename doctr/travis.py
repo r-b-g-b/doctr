@@ -12,6 +12,8 @@ import re
 
 from cryptography.fernet import Fernet
 
+DOCTR_WORKING_BRANCH = '__doctr_working_branch'
+
 def decrypt_file(file, key):
     """
     Decrypts the file ``file``.
@@ -213,13 +215,9 @@ def setup_GitHub_push(deploy_repo, auth_type='deploy_key', full_key_path='github
     run(['git', 'fetch', 'doctr_remote'])
 
     #create empty branch with .nojekyll if it doesn't already exist
-    new_deploy_branch = create_deploy_branch(deploy_branch, push=canpush)
-    print("Checking out {}".format(deploy_branch))
-    local_deploy_branch_exists = deploy_branch in subprocess.check_output(['git', 'branch']).decode('utf-8').split()
-    if new_deploy_branch or local_deploy_branch_exists:
-        run(['git', 'checkout', deploy_branch])
-    else:
-        run(['git', 'checkout', '-b', deploy_branch, '--track', 'doctr_remote/{}'.format(deploy_branch)])
+    create_deploy_branch(deploy_branch, push=canpush)
+    print("Checking out doctr working branch tracking doctr_remote/{}".format(deploy_branch))
+    run(['git', 'checkout', '-B', DOCTR_WORKING_BRANCH, '--track', 'doctr_remote/{}'.format(deploy_branch)])
     print("Done")
 
     return canpush
@@ -406,7 +404,7 @@ def push_docs(deploy_branch='gh-pages'):
     print("Pulling")
     run(['git', 'pull', 'doctr_remote', deploy_branch])
     print("Pushing commit")
-    run(['git', 'push', '-q', 'doctr_remote', deploy_branch])
+    run(['git', 'push', '-q', 'doctr_remote', '{}:{}'.format(DOCTR_WORKING_BRANCH, deploy_branch)])
 
 def determine_push_rights(branch_whitelist, TRAVIS_BRANCH, TRAVIS_PULL_REQUEST):
     """Check if Travis is running on ``master`` (or a whitelisted branch) to
