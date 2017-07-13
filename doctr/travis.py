@@ -219,6 +219,7 @@ def setup_GitHub_push(deploy_repo, auth_type='deploy_key', full_key_path='github
     run(['git', 'fetch', 'doctr_remote'])
 
     #create empty branch with .nojekyll if it doesn't already exist
+    run(['git', 'stash'])
     new_deploy_branch = create_deploy_branch(deploy_branch, push=canpush)
     print("Checking out {}".format(deploy_branch))
     local_deploy_branch_exists = deploy_branch in subprocess.check_output(['git', 'branch']).decode('utf-8').split()
